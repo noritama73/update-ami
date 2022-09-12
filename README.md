@@ -1,5 +1,5 @@
 # update-ami
-Amazon Mashine Imageの更新作業を簡素化するCLI
+Amazon Machine Imageの更新作業を簡素化するCLI
 
 # Usage
 
