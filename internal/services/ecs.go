@@ -112,3 +112,5 @@ func (s *ecsService) UpdateECSServiceByForce(instance ClusterInstance) error {
 	}
 	return nil
 }
+
+var _ ECSService = (*ecsService)(nil)

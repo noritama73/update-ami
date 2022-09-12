@@ -39,3 +39,5 @@ func (s *ec2Service) TerinateInstance(instance ClusterInstance) error {
 	_, err := s.svc.TerminateInstances(input)
 	return err
 }
+
+var _ EC2Service = (*ec2Service)(nil)
