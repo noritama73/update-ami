@@ -1,11 +1,17 @@
 fmt:
 	@go fmt ./...
 
-build:
-	@go build
+vendor:
+	@go mod vendor
 
-update-ami: build
-	@./update-ami hello
+gosec:
+	@gosec ./...
+
+build: fmt vendor
+	@go build -o update-ami ./cmd/main.go
 
 replace: build
 	@./update-ami replace-instances
+
+set_cred:
+	@./scripts/set_aws_credentials.sh $(TOKEN_CODE)
