@@ -4,17 +4,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
 
 	"github.com/noritama73/update-ami/internal/handler"
 )
 
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
+	log.SetFlags(log.Lshortfile)
 }
 
 func main() {
@@ -25,20 +21,14 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:  "replace-instaces",
-			Usage: "do replace",
+			Name:  "replace-instances",
+			Usage: "replace cluster instances",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "cluster-id",
 					Value:  "",
 					Usage:  "ID of target ECS cluster",
 					EnvVar: "AWS_ECS_CLUSTER_ID",
-				},
-				cli.StringFlag{
-					Name:   "profile",
-					Value:  "",
-					Usage:  "profile for credential",
-					EnvVar: "AWS_PROFILE",
 				},
 			},
 			Action: func(c *cli.Context) error {
