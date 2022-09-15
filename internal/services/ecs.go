@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,6 +17,7 @@ type ECSService interface {
 	DrainContainerInstances(instance ClusterInstance) error
 	DeregisterContainerInstance(instance ClusterInstance) error
 	UpdateECSServiceByForce(instance ClusterInstance) error
+	WaitUntilContainerInstanceDrained(instance ClusterInstance, config CustomAWSWaiterConfig) error
 }
 
 type ClusterInstance struct {
@@ -50,6 +52,9 @@ func (s *ecsService) ListContainerInstances(cluster string) ([]ClusterInstance, 
 	lciResp, err := s.svc.ListContainerInstances(lciInput)
 	if err != nil {
 		return result, err
+	}
+	if len(lciResp.ContainerInstanceArns) == 0 {
+		return result, fmt.Errorf("there is no instance in %s", cluster)
 	}
 	dciInput := &ecs.DescribeContainerInstancesInput{
 		Cluster:            aws.String(cluster),

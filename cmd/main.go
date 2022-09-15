@@ -9,10 +9,6 @@ import (
 	"github.com/noritama73/update-ami/internal/handler"
 )
 
-func init() {
-	log.SetFlags(log.Lshortfile)
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
@@ -35,6 +31,19 @@ func main() {
 				return handler.ReplaceClusterInstnces(c)
 			},
 		},
+	}
+
+	if os.Getenv("AWS_REGION") == "" {
+		log.Println("missing region")
+		os.Exit(1)
+	}
+	if os.Getenv("AWS_ACCESS_KEY") == "" {
+		log.Println("missing access key")
+		os.Exit(1)
+	}
+	if os.Getenv("AWS_SECRET_KEY") == "" {
+		log.Println("missing secret key")
+		os.Exit(1)
 	}
 
 	if err := app.Run(os.Args); err != nil {

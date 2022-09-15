@@ -20,25 +20,35 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		return err
 	}
 	log.Println("successfully initialize sessions")
+
 	// クラスタのコンテナインスタンス一覧を取得
 	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster-id"))
+	if err != nil {
+		log.Println(err)
+	}
 
 	for _, instance := range clusterInstances {
 		// インスタンスをドレイン( update-container-instances-state )
-		err := ecsService.DrainContainerInstances(instance)
-		if err != nil {
+		if err := ecsService.DrainContainerInstances(instance); err != nil {
+			log.Println(err)
+		}
+
+		// ドレインされるまで待つ
+		config := services.CustomAWSWaiterConfig{
+			MaxAttempts: 40,
+			Delay:       10,
+		}
+		if err := ecsService.WaitUntilContainerInstanceDrained(instance, config); err != nil {
 			log.Println(err)
 		}
 
 		// インスタンスをクラスタから外す
-		err = ecsService.DeregisterContainerInstance(instance)
-		if err != nil {
+		if err := ecsService.DeregisterContainerInstance(instance); err != nil {
 			log.Println(err)
 		}
 
 		// インスタンスをterminate(termiane-instance)
-		err = ec2Service.TerinateInstance(instance)
-		if err != nil {
+		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
 		}
 
@@ -46,8 +56,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		time.Sleep(300 * time.Second)
 
 		// ecsサービスを--force-new-deployment
-		err = ecsService.UpdateECSServiceByForce(instance)
-		if err != nil {
+		if err := ecsService.UpdateECSServiceByForce(instance); err != nil {
 			log.Println(err)
 		}
 
