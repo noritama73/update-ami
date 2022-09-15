@@ -4,18 +4,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/urfave/cli"
 
 	"github.com/noritama73/update-ami/internal/handler"
 )
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println(err)
-		os.Exit(1)
-	}
-}
 
 func main() {
 	app := cli.NewApp()
