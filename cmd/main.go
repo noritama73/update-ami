@@ -26,7 +26,7 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:  "replace-instaces",
-			Usage: "do replace",
+			Usage: "replace instances",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "cluster-id",
@@ -37,7 +37,7 @@ func main() {
 				cli.StringFlag{
 					Name:   "profile",
 					Value:  "",
-					Usage:  "profile for credential",
+					Usage:  "profile of AWS user",
 					EnvVar: "AWS_PROFILE",
 				},
 			},

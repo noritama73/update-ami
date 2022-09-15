@@ -12,6 +12,3 @@ build: fmt vendor
 
 replace: build
 	@./update-ami replace-instances
-
-set_cred:
-	@./scripts/set_aws_credentials.sh $(TOKEN_CODE)
