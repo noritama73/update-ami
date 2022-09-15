@@ -9,6 +9,10 @@ import (
 	"github.com/noritama73/update-ami/internal/handler"
 )
 
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
@@ -17,7 +21,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:  "replace-instaces",
+			Name:  "replace-instances",
 			Usage: "replace instances",
 			Flags: []cli.Flag{
 				cli.StringFlag{

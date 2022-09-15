@@ -22,6 +22,10 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	log.Println("successfully initialize sessions")
 	// クラスタのコンテナインスタンス一覧を取得
 	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster-id"))
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(clusterInstances)
 
 	for _, instance := range clusterInstances {
 		// インスタンスをドレイン( update-container-instances-state )

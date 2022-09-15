@@ -32,7 +32,7 @@ type ecsService struct {
 func NewECSService(c *cli.Context) (ECSService, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(os.Getenv("AWS_REGION")),
-		Credentials: credentials.NewSharedCredentials("", c.String("profile")),
+		Credentials: credentials.NewEnvCredentials(),
 	})
 	if err != nil {
 		return nil, err

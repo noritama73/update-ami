@@ -15,6 +15,3 @@
 vendor/
 update-ami
 .env
-
-.config
-.credentials
