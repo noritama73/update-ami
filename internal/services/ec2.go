@@ -22,7 +22,7 @@ type ec2Service struct {
 func NewEC2Service(c *cli.Context) (EC2Service, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(os.Getenv("AWS_REGION")),
-		Credentials: credentials.NewSharedCredentials("", c.String("profile")),
+		Credentials: credentials.NewEnvCredentials(),
 	})
 	if err != nil {
 		return nil, err
