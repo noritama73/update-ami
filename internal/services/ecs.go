@@ -18,6 +18,7 @@ type ECSService interface {
 	DeregisterContainerInstance(instance ClusterInstance) error
 	UpdateECSServiceByForce(instance ClusterInstance) error
 	WaitUntilContainerInstanceDrained(instance ClusterInstance, config CustomAWSWaiterConfig) error
+	WaitUntilNewInstanceRegistered(cluster string, desire int, config CustomAWSWaiterConfig) error
 }
 
 type ClusterInstance struct {
