@@ -26,6 +26,16 @@ func main() {
 					Usage:  "ID of target ECS cluster",
 					EnvVar: "AWS_ECS_CLUSTER_ID",
 				},
+				cli.IntFlag{
+					Name:  "max-attempt",
+					Value: 40,
+					Usage: "maximum attempts of waiter config",
+				},
+				cli.IntFlag{
+					Name:  "waiter-delay",
+					Value: 20,
+					Usage: "delay of wiater config",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				return handler.ReplaceClusterInstnces(c)

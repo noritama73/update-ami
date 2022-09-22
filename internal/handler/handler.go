@@ -21,10 +21,15 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	}
 	log.Println("successfully initialize sessions")
 
+	waiterConfig := services.CustomAWSWaiterConfig{
+		MaxAttempts: c.Int("max-attempt"),
+		Delay:       c.Int("waiter-delay"),
+	}
+
 	// クラスタのコンテナインスタンス一覧を取得
 	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster-id"))
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 	for _, v := range clusterInstances {
 		log.Printf("Instance ID: %v", v.InstanceID)
@@ -40,11 +45,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		}
 
 		// ドレインされるまで待つ
-		config := services.CustomAWSWaiterConfig{
-			MaxAttempts: 40,
-			Delay:       20,
-		}
-		if err := ecsService.WaitUntilContainerInstanceDrained(instance, config); err != nil {
+		if err := ecsService.WaitUntilContainerInstanceDrained(instance, waiterConfig); err != nil {
 			log.Println(err)
 		}
 		log.Printf("Drained: %v", instance.InstanceID)
@@ -64,7 +65,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		// 新しいインスタンスが登録されるのを待つ(ヘルスチェックの猶予は300秒)
 		log.Println("waiting for a new instence to be registered")
 		// time.Sleep(300 * time.Second)
-		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster-id"), len(clusterInstances), config); err != nil {
+		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster-id"), len(clusterInstances), waiterConfig); err != nil {
 			log.Println(err)
 		}
 
