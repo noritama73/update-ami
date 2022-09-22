@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"bufio"
+	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/noritama73/update-ami/internal/services"
@@ -34,10 +38,14 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	for _, v := range clusterInstances {
 		log.Printf("Instance ID: %v", v.InstanceID)
 	}
+	fmt.Println("Continue? [yes / no]")
+	if !validateContinuingFromStdin() {
+		os.Exit(1)
+	}
 
 	for i, instance := range clusterInstances {
 		log.Println("**************************************************************")
-		log.Printf("working on: %v (%d / %d)", instance.InstanceID, i, len(clusterInstances))
+		log.Printf("working on: %v (%d / %d)", instance.InstanceID, i+1, len(clusterInstances))
 
 		// インスタンスをドレイン( update-container-instances-state )
 		if err := ecsService.DrainContainerInstances(instance); err != nil {
@@ -81,4 +89,13 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	}
 	log.Println("Success!")
 	return nil
+}
+
+func validateContinuingFromStdin() bool {
+	s := bufio.NewScanner(os.Stdin)
+	s.Scan()
+	if s.Err() != nil {
+		panic("")
+	}
+	return strings.ToLower(s.Text()) == "yes"
 }

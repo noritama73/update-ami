@@ -27,9 +27,9 @@ func main() {
 					EnvVar: "AWS_ECS_CLUSTER_ID",
 				},
 				cli.StringFlag{
-					Name: "region",
-					Value: "",
-					Usage: "AWS region",
+					Name:   "region",
+					Value:  "",
+					Usage:  "AWS region",
 					EnvVar: "AWS_REGION",
 				},
 				cli.StringFlag{
@@ -46,7 +46,7 @@ func main() {
 				cli.IntFlag{
 					Name:  "waiter-delay",
 					Value: 20,
-					Usage: "delay of wiater config",
+					Usage: "delay of waiter config",
 				},
 			},
 			Action: func(c *cli.Context) error {
