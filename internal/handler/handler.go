@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log"
+	"time"
 
 	"github.com/noritama73/update-ami/internal/services"
 	"github.com/urfave/cli"
@@ -71,6 +72,8 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		if err := ecsService.UpdateECSServiceByForce(instance); err != nil {
 			log.Println(err)
 		}
+
+		time.Sleep(10 * time.Second)
 
 		// 全てのインスタンスが更新されるまで繰り返す
 		//（ひとまず最初に取得したインスタンスを全てterminateしたら正常終了？）
