@@ -8,11 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/noritama73/update-ami/internal/services"
 	"github.com/urfave/cli"
+
+	"github.com/noritama73/update-ami/internal/services"
 )
 
 func ReplaceClusterInstnces(c *cli.Context) error {
+	isSkip := c.Bool("skip-abnormal-instance")
+
 	ecsService, err := services.NewECSService(c)
 	if err != nil {
 		log.Println(err)
@@ -31,14 +34,15 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	}
 
 	// クラスタのコンテナインスタンス一覧を取得
-	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster-id"))
+	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster"))
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	for _, v := range clusterInstances {
-		log.Printf("Instance ID: %v", v.InstanceID)
+		log.Printf("Instance is found: %v", v.InstanceID)
 	}
-	fmt.Println("Continue? [yes / no]")
+
 	if !validateContinuingFromStdin() {
 		os.Exit(1)
 	}
@@ -50,36 +54,62 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		// インスタンスをドレイン( update-container-instances-state )
 		if err := ecsService.DrainContainerInstances(instance); err != nil {
 			log.Println(err)
+			if isSkip {
+				continue
+			} else {
+				return err
+			}
 		}
 
 		// ドレインされるまで待つ
 		if err := ecsService.WaitUntilContainerInstanceDrained(instance, waiterConfig); err != nil {
 			log.Println(err)
+			if isSkip {
+				continue
+			} else {
+				return err
+			}
 		}
 		log.Printf("Drained: %v", instance.InstanceID)
 
 		// インスタンスをクラスタから外す
 		if err := ecsService.DeregisterContainerInstance(instance); err != nil {
 			log.Println(err)
+			if isSkip {
+				continue
+			} else {
+				return err
+			}
 		}
 		log.Printf("Deregistered: %v", instance.InstanceID)
 
 		// インスタンスをterminate(termiane-instance)
 		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
+			if isSkip {
+				continue
+			} else {
+				return err
+			}
 		}
 		log.Printf("Terminated: %v", instance.InstanceID)
 
 		// 新しいインスタンスが登録されるのを待つ(ヘルスチェックの猶予は300秒)
-		log.Println("waiting for a new instence to be registered")
-		// time.Sleep(300 * time.Second)
+		log.Println("waiting for a new instance to be registered")
+
 		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster-id"), len(clusterInstances), waiterConfig); err != nil {
 			log.Println(err)
+			if !validateContinuingFromStdin() {
+				os.Exit(1)
+			}
 		}
 
 		// ecsサービスを--force-new-deployment
 		if err := ecsService.UpdateECSServiceByForce(instance); err != nil {
 			log.Println(err)
+			if !validateContinuingFromStdin() {
+				os.Exit(1)
+			}
 		}
 
 		time.Sleep(10 * time.Second)
@@ -92,10 +122,11 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 }
 
 func validateContinuingFromStdin() bool {
+	fmt.Println("Continue? [yes / no(->Exit process)]")
 	s := bufio.NewScanner(os.Stdin)
 	s.Scan()
 	if s.Err() != nil {
-		panic("")
+		panic("error in scannig stdin")
 	}
 	return strings.ToLower(s.Text()) == "yes"
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/urfave/cli"
@@ -21,7 +20,7 @@ func main() {
 			Usage: "replace cluster instances",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "cluster-id",
+					Name:   "cluster",
 					Value:  "",
 					Usage:  "ID of target ECS cluster",
 					EnvVar: "AWS_ECS_CLUSTER_ID",
@@ -48,6 +47,10 @@ func main() {
 					Value: 20,
 					Usage: "delay of waiter config",
 				},
+				cli.BoolFlag{
+					Name:  "skip-abnormal-instance",
+					Usage: "if true, you can skip abnormal instences and continue the process",
+				},
 			},
 			Action: func(c *cli.Context) error {
 				return handler.ReplaceClusterInstnces(c)
@@ -56,7 +59,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Println(err)
 		os.Exit(1)
 	}
 }

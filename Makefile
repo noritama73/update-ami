@@ -8,4 +8,4 @@ gosec:
 	@gosec ./...
 
 build: fmt vendor
-	@go build -o update-ami ./cmd/main.go
+	@go build ./cmd/update-ami/main.go
