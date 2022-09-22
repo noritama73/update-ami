@@ -1,10 +1,8 @@
 package services
 
 import (
-	"os"
-
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
@@ -20,13 +18,13 @@ type ec2Service struct {
 }
 
 func NewEC2Service(c *cli.Context) (EC2Service, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(os.Getenv("AWS_REGION")),
-		Credentials: credentials.NewSharedCredentials("", c.String("profile")),
-	})
-	if err != nil {
-		return nil, err
+	opt := session.Options{
+		Config:                  *aws.NewConfig(),
+		Profile:                 c.String("profile"),
+		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		SharedConfigState:       session.SharedConfigEnable,
 	}
+	sess := session.Must(session.NewSessionWithOptions(opt))
 	return &ec2Service{
 		svc: ec2.New(sess),
 	}, nil
