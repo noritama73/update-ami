@@ -26,6 +26,18 @@ func main() {
 					Usage:  "ID of target ECS cluster",
 					EnvVar: "AWS_ECS_CLUSTER_ID",
 				},
+				cli.StringFlag{
+					Name: "region",
+					Value: "",
+					Usage: "AWS region",
+					EnvVar: "AWS_REGION",
+				},
+				cli.StringFlag{
+					Name:   "profile",
+					Value:  "",
+					Usage:  "AWS profile",
+					EnvVar: "AWS_PROFILE",
+				},
 				cli.IntFlag{
 					Name:  "max-attempt",
 					Value: 40,
@@ -41,19 +53,6 @@ func main() {
 				return handler.ReplaceClusterInstnces(c)
 			},
 		},
-	}
-
-	if os.Getenv("AWS_REGION") == "" {
-		log.Println("missing region")
-		os.Exit(1)
-	}
-	if os.Getenv("AWS_ACCESS_KEY") == "" {
-		log.Println("missing access key")
-		os.Exit(1)
-	}
-	if os.Getenv("AWS_SECRET_KEY") == "" {
-		log.Println("missing secret key")
-		os.Exit(1)
 	}
 
 	if err := app.Run(os.Args); err != nil {
