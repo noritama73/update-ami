@@ -49,7 +49,7 @@ func (s *ecsService) WaitUntilNewInstanceRegistered(cluster string, desire int, 
 			return nil
 		}
 		log.Println("Still new instance isn't registerd")
-		time.Sleep(time.Duration(config.Delay))
+		time.Sleep(time.Duration(config.Delay) * time.Second)
 	}
 	return fmt.Errorf("the maximum number of attempts has been reached: %d", config.MaxAttempts)
 }
