@@ -122,7 +122,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 }
 
 func validateContinuingFromStdin() bool {
-	fmt.Println("Continue? [yes / no(->Exit process)]")
+	fmt.Print("Continue? [yes / no(->Exit process)]: ")
 	s := bufio.NewScanner(os.Stdin)
 	s.Scan()
 	if s.Err() != nil {
