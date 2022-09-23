@@ -12,7 +12,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
 	app.Usage = "Replace ECS Cluster Instances for AMI Update"
-	app.Version = "0.1.0"
+	app.Version = "1.0.0"
 
 	app.Commands = []cli.Command{
 		{
