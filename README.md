@@ -12,7 +12,7 @@ go install github.com/noritama73/update-ami/cmd/update-ami@latest
 ## Example
 
 ```
-update-ami replace-instances --region ap-northeast-1 --profile <role>@<account> --cluster <cluster> --max-attempt 20 --delay 10 --skip-abnormal-instance
+update-ami replace-instances --region ap-northeast-1 --profile <user>@<account> --cluster <cluster> --max-attempt 20 --delay 10 --skip-abnormal-instance
 ```
 
 # Arguments
