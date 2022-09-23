@@ -97,7 +97,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		// 新しいインスタンスが登録されるのを待つ(ヘルスチェックの猶予は300秒)
 		log.Println("waiting for a new instance to be registered")
 
-		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster-id"), len(clusterInstances), waiterConfig); err != nil {
+		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster"), len(clusterInstances), waiterConfig); err != nil {
 			log.Println(err)
 			if !validateContinuingFromStdin() {
 				os.Exit(1)
