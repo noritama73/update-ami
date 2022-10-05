@@ -48,7 +48,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	}
 
 	for i, instance := range clusterInstances {
-		log.Println("**************************************************************")
+		log.Println("**************************************************")
 		log.Printf("working on: %v (%d / %d)", instance.InstanceID, i+1, len(clusterInstances))
 
 		// インスタンスをドレイン( update-container-instances-state )
@@ -122,7 +122,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 }
 
 func validateContinuingFromStdin() bool {
-	fmt.Print("Continue? [yes / no(->Exit process)]: ")
+	fmt.Print("Continue? If yes, type exactly \"yes\": ")
 	s := bufio.NewScanner(os.Stdin)
 	s.Scan()
 	if s.Err() != nil {
