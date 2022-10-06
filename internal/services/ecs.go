@@ -4,11 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/ecs/ecsiface"
-	"github.com/urfave/cli"
 )
 
 type ECSService interface {
@@ -29,19 +26,6 @@ type ClusterInstance struct {
 
 type ecsService struct {
 	svc ecsiface.ECSAPI
-}
-
-func NewECSService(c *cli.Context) (ECSService, error) {
-	opt := session.Options{
-		Config:                  *aws.NewConfig(),
-		Profile:                 c.String("profile"),
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-		SharedConfigState:       session.SharedConfigEnable,
-	}
-	sess := session.Must(session.NewSessionWithOptions(opt))
-	return &ecsService{
-		svc: ecs.New(sess),
-	}, nil
 }
 
 func (s *ecsService) ListContainerInstances(cluster string) ([]ClusterInstance, error) {
