@@ -22,7 +22,7 @@ func main() {
 				cli.StringFlag{
 					Name:   "cluster",
 					Value:  "",
-					Usage:  "ID of target ECS cluster",
+					Usage:  "Name of target ECS cluster",
 					EnvVar: "AWS_ECS_CLUSTER",
 				},
 				cli.StringFlag{
