@@ -55,7 +55,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		return err
 	}
 	desiredCount := cap
-	log.Printf("cap: %d", cap)
+	log.Printf("Desired capacity: %d", cap)
 
 	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount+1)); err != nil {
 		log.Println("couldn't update desired capacity")
@@ -75,7 +75,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		log.Println("couldn't describe autoscaling group")
 		return err
 	}
-	log.Printf("increase desired capacity: %d", newcap)
+	log.Printf("increased desired capacity: %d", newcap)
 	if !validateContinuingFromStdin() {
 		os.Exit(1)
 	}

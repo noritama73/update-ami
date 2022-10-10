@@ -9,15 +9,11 @@ import (
 	"github.com/noritama73/update-ami/internal/handler"
 )
 
-func init() {
-	log.SetFlags(log.Lshortfile)
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
 	app.Usage = "Replace ECS Cluster Instances for AMI Update"
-	app.Version = "1.1.0"
+	app.Version = "2.0.0"
 
 	app.Commands = []cli.Command{
 		{
