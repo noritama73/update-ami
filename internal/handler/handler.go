@@ -16,16 +16,7 @@ import (
 func ReplaceClusterInstnces(c *cli.Context) error {
 	isSkip := c.Bool("skip-abnormal-instance")
 
-	ecsService, err := services.NewECSService(c)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	ec2Service, err := services.NewEC2Service(c)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
+	ec2Service, ecsService := services.NewSessions(c)
 	log.Println("successfully initialize sessions")
 
 	waiterConfig := services.CustomAWSWaiterConfig{
