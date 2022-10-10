@@ -87,22 +87,26 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		log.Printf("Draining: %v", instance.InstanceID)
 		if err := ecsService.DrainContainerInstances(instance); err != nil {
 			log.Println(err)
+			continue
 		}
 
 		if err := ecsService.WaitUntilContainerInstanceDrained(instance, waiterConfig); err != nil {
 			log.Println(err)
+		} else {
+			log.Printf("Drained: %v", instance.InstanceID)
 		}
-		log.Printf("Drained: %v", instance.InstanceID)
 
 		if err := ecsService.DeregisterContainerInstance(instance); err != nil {
 			log.Println(err)
+		} else {
+			log.Printf("Deregistered: %v", instance.InstanceID)
 		}
-		log.Printf("Deregistered: %v", instance.InstanceID)
 
 		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
+		} else {
+			log.Printf("Terminated: %v", instance.InstanceID)
 		}
-		log.Printf("Terminated: %v", instance.InstanceID)
 
 		if (i + 1) == len(clusterInstances) {
 			break
@@ -121,6 +125,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 
 	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount)); err != nil {
 		log.Println("couldn't update desired capacity")
+		return err
 	}
 	log.Println("Reseted desired capacity")
 
