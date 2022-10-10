@@ -1,12 +1,17 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/urfave/cli"
 
 	"github.com/noritama73/update-ami/internal/handler"
 )
+
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
 
 func main() {
 	app := cli.NewApp()
@@ -47,9 +52,10 @@ func main() {
 					Value: 20,
 					Usage: "delay of waiter config",
 				},
-				cli.BoolFlag{
-					Name:  "skip-abnormal-instance",
-					Usage: "if true, you can skip abnormal instences and continue the process",
+				cli.StringFlag{
+					Name:  "asg-name",
+					Value: "",
+					Usage: "associated asg",
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -59,6 +65,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
+		log.Println(err)
 		os.Exit(1)
 	}
 }

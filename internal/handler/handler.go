@@ -13,10 +13,27 @@ import (
 	"github.com/noritama73/update-ami/internal/services"
 )
 
-func ReplaceClusterInstnces(c *cli.Context) error {
-	isSkip := c.Bool("skip-abnormal-instance")
+////////////////////////////////////////////////////////////////////////////////////
+// 1.既存のコンテナインスタンスのIDを控える
+// 2.ASGのdesired countを1増やす(maxを越えてしまうならそっちも一旦+1？)
+// 3.新しいインスタンスが追加されるのを待つ
+// 4.古いインスタンスを1つドレインする
+// 5.ドレインされたらderegister→terminate
+// 6.インスタンスが増えるのを待つ
+// 7.サービスを強制更新
+// 8.ちょっと待つ
+// 9.4.に戻る
+// 10.古いインスタンスをドレインし切るタイミングでdesired countを1減らす（元に戻す）
+////////////////////////////////////////////////////////////////////////////////////
 
-	ec2Service, ecsService := services.NewSessions(c)
+func ReplaceClusterInstnces(c *cli.Context) error {
+	clusterName := c.String("cluster")
+	asgName := c.String("asg-name")
+	if c.String("asg-name") == "" {
+		asgName = clusterName
+	}
+
+	ec2Service, ecsService, asgService := services.NewServices(c)
 	log.Println("successfully initialize sessions")
 
 	waiterConfig := services.CustomAWSWaiterConfig{
@@ -24,8 +41,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		Delay:       c.Int("waiter-delay"),
 	}
 
-	// クラスタのコンテナインスタンス一覧を取得
-	clusterInstances, err := ecsService.ListContainerInstances(c.String("cluster"))
+	clusterInstances, err := ecsService.ListContainerInstances(clusterName)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -33,7 +49,33 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	for _, v := range clusterInstances {
 		log.Printf("Instance is found: %v", v.InstanceID)
 	}
+	cap, err := asgService.DescribeAutoScalingGroups(asgName)
+	if err != nil {
+		log.Println("couldn't describe autoscaling group")
+		return err
+	}
+	desiredCount := cap
+	log.Printf("cap: %d", cap)
 
+	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount+1)); err != nil {
+		log.Println("couldn't update desired capacity")
+		return err
+	}
+	log.Println("waiting for a new instance to be registered")
+	if err := ecsService.WaitUntilNewInstanceRegistered(clusterName, len(clusterInstances)+1, waiterConfig); err != nil {
+		log.Println(err)
+		return err
+	}
+	if err := ecsService.UpdateECSServiceByForce(clusterName); err != nil {
+		log.Println(err)
+	}
+	time.Sleep(5 * time.Second)
+	newcap, err := asgService.DescribeAutoScalingGroups(asgName)
+	if err != nil {
+		log.Println("couldn't describe autoscaling group")
+		return err
+	}
+	log.Printf("increase desired capacity: %d", newcap)
 	if !validateContinuingFromStdin() {
 		os.Exit(1)
 	}
@@ -42,72 +84,46 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		log.Println("**************************************************")
 		log.Printf("working on: %v (%d / %d)", instance.InstanceID, i+1, len(clusterInstances))
 
-		// インスタンスをドレイン( update-container-instances-state )
+		log.Printf("Draining: %v", instance.InstanceID)
 		if err := ecsService.DrainContainerInstances(instance); err != nil {
 			log.Println(err)
-			if isSkip {
-				continue
-			} else {
-				return err
-			}
 		}
 
-		// ドレインされるまで待つ
 		if err := ecsService.WaitUntilContainerInstanceDrained(instance, waiterConfig); err != nil {
 			log.Println(err)
-			if isSkip {
-				continue
-			} else {
-				return err
-			}
 		}
 		log.Printf("Drained: %v", instance.InstanceID)
 
-		// インスタンスをクラスタから外す
 		if err := ecsService.DeregisterContainerInstance(instance); err != nil {
 			log.Println(err)
-			if isSkip {
-				continue
-			} else {
-				return err
-			}
 		}
 		log.Printf("Deregistered: %v", instance.InstanceID)
 
-		// インスタンスをterminate(termiane-instance)
 		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
-			if isSkip {
-				continue
-			} else {
-				return err
-			}
 		}
 		log.Printf("Terminated: %v", instance.InstanceID)
 
-		// 新しいインスタンスが登録されるのを待つ(ヘルスチェックの猶予は300秒)
+		if (i + 1) == len(clusterInstances) {
+			break
+		}
+
 		log.Println("waiting for a new instance to be registered")
-
-		if err := ecsService.WaitUntilNewInstanceRegistered(c.String("cluster"), len(clusterInstances), waiterConfig); err != nil {
+		if err := ecsService.WaitUntilNewInstanceRegistered(clusterName, len(clusterInstances)+1, waiterConfig); err != nil {
 			log.Println(err)
-			if !validateContinuingFromStdin() {
-				os.Exit(1)
-			}
 		}
 
-		// ecsサービスを--force-new-deployment
-		if err := ecsService.UpdateECSServiceByForce(instance); err != nil {
+		if err := ecsService.UpdateECSServiceByForce(clusterName); err != nil {
 			log.Println(err)
-			if !validateContinuingFromStdin() {
-				os.Exit(1)
-			}
 		}
-
 		time.Sleep(10 * time.Second)
-
-		// 全てのインスタンスが更新されるまで繰り返す
-		//（ひとまず最初に取得したインスタンスを全てterminateしたら正常終了？）
 	}
+
+	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount)); err != nil {
+		log.Println("couldn't update desired capacity")
+	}
+	log.Println("Reseted desired capacity")
+
 	log.Println("Success!")
 	return nil
 }
