@@ -12,7 +12,7 @@ go install github.com/noritama73/update-ami/cmd/update-ami@latest
 ## Example
 
 ```
-update-ami replace-instances --region ap-northeast-1 --profile <user>@<account> --cluster <cluster> --max-attempt 20 --delay 10 --skip-abnormal-instance
+update-ami replace-instances --region ap-northeast-1 --profile <user>@<account> --cluster <cluster> --max-attempt 20 --delay 10
 ```
 
 # Arguments
@@ -37,14 +37,19 @@ AWS CLIを使用するユーザのprofile，MFA対応．無ければAWS_PROFILE�
 
 インスタンスのステータスチェックを行う間隔．デフォルト20秒
 
-## skip-abnormal-instance (optional)
+## asg-name (optional)
 
-処理に不具合のあったインスタンスが出た場合，一旦無視して他のインスタンスへ向けて処理を続行する
+対象クラスタに紐づくAutoScaling Groupの名前．指定しないとクラスタと同じ文字列が入ります
 
 # 内部的に実行される手順
 
-1. ECSクラスタごとに一つのインスタンスをドレイニングし、一定期間待つ
-1. ドレイニングしたインスタンスをterminateする
-1. 新しいインスタンスが立ち上がってECSクラスタインスタンスに登録されるのを待つ
-1. ECSサービスをforce_deploymentで更新してタスクが偏ったインスタンスに存在しないようにする
-1. 1.に戻り、これをクラスタ内のすべてのインスタンスが新しくなるまで続ける
+1. 既存のコンテナインスタンスのIDを控える
+2. ASGのdesired capacityを1増やす
+3. 新しいインスタンスが追加されるのを待つ
+4. 古いインスタンスを1つドレインする
+5. ドレインされたらderegister→terminate
+6. インスタンスが増えるのを待つ
+7. サービスを強制更新
+8. ちょっと待つ
+9. 4.に戻る
+10. 最後のインスタンスをterminateしたらdesired capacityを1減らす（元に戻す）

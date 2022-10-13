@@ -12,7 +12,7 @@ type ECSService interface {
 	ListContainerInstances(cluster string) ([]ClusterInstance, error)
 	DrainContainerInstances(instance ClusterInstance) error
 	DeregisterContainerInstance(instance ClusterInstance) error
-	UpdateECSServiceByForce(instance ClusterInstance) error
+	UpdateECSServiceByForce(cluster string) error
 	WaitUntilContainerInstanceDrained(instance ClusterInstance, config CustomAWSWaiterConfig) error
 	WaitUntilNewInstanceRegistered(cluster string, desire int, config CustomAWSWaiterConfig) error
 }
@@ -80,9 +80,9 @@ func (s *ecsService) DeregisterContainerInstance(instance ClusterInstance) error
 	return err
 }
 
-func (s *ecsService) UpdateECSServiceByForce(instance ClusterInstance) error {
+func (s *ecsService) UpdateECSServiceByForce(cluster string) error {
 	dsInput := &ecs.ListServicesInput{
-		Cluster: aws.String(instance.Cluster),
+		Cluster: aws.String(cluster),
 	}
 	dsResp, err := s.svc.ListServices(dsInput)
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *ecsService) UpdateECSServiceByForce(instance ClusterInstance) error {
 	}
 	for _, serviceArn := range dsResp.ServiceArns {
 		usInput := &ecs.UpdateServiceInput{
-			Cluster:            aws.String(instance.Cluster),
+			Cluster:            aws.String(cluster),
 			Service:            aws.String(*serviceArn),
 			ForceNewDeployment: aws.Bool(true),
 		}

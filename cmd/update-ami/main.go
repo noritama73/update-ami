@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/urfave/cli"
@@ -12,7 +13,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
 	app.Usage = "Replace ECS Cluster Instances for AMI Update"
-	app.Version = "1.1.0"
+	app.Version = "2.0.0"
 
 	app.Commands = []cli.Command{
 		{
@@ -47,9 +48,10 @@ func main() {
 					Value: 20,
 					Usage: "delay of waiter config",
 				},
-				cli.BoolFlag{
-					Name:  "skip-abnormal-instance",
-					Usage: "if true, you can skip abnormal instences and continue the process",
+				cli.StringFlag{
+					Name:  "asg-name",
+					Value: "",
+					Usage: "associated asg",
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -59,6 +61,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
+		log.Println(err)
 		os.Exit(1)
 	}
 }
