@@ -1,11 +1,7 @@
 package handler
 
 import (
-	"bufio"
-	"fmt"
 	"log"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/urfave/cli"
@@ -76,9 +72,6 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		return err
 	}
 	log.Printf("increased desired capacity: %d", newcap)
-	if !validateContinuingFromStdin() {
-		os.Exit(1)
-	}
 
 	for i, instance := range clusterInstances {
 		log.Println("**************************************************")
@@ -133,12 +126,3 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	return nil
 }
 
-func validateContinuingFromStdin() bool {
-	fmt.Print("Continue? If yes, type exactly \"yes\": ")
-	s := bufio.NewScanner(os.Stdin)
-	s.Scan()
-	if s.Err() != nil {
-		panic("error in scannig stdin")
-	}
-	return strings.ToLower(s.Text()) == "yes"
-}
