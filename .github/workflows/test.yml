@@ -45,5 +45,5 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${GH_TOKEN}
-        github-branch: $GITHUB_REF
+        git-branch: $GITHUB_REF
         path-to-lcov: coverage.lcov
