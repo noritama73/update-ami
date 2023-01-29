@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/noritama73/update-ami/badge.svg)](https://coveralls.io/github/noritama73/update-ami)
+
 # update-ami
 更新されたAuto Scaling Groupの設定をECSコンテナインスタンスに反映させるため，インスタンスの入れ替え作業を行うCLI
 
