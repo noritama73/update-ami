@@ -28,6 +28,8 @@ func newMockAsgService(iface autoscalingiface.AutoScalingAPI) ASGService {
 }
 
 func Test_DescribeAutoScalingGroups(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
@@ -54,6 +56,8 @@ func Test_DescribeAutoScalingGroups(t *testing.T) {
 }
 
 func Test_UpdateDesiredCapacity(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 

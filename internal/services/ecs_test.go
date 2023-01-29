@@ -32,6 +32,8 @@ func newMockEcsService(iface ecsiface.ECSAPI) ECSService {
 }
 
 func Test_ListContainerInstances(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
@@ -95,6 +97,8 @@ func Test_ListContainerInstances(t *testing.T) {
 }
 
 func Test_DrainContainerInstances(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 

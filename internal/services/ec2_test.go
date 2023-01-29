@@ -22,6 +22,8 @@ func newMockEc2Service(iface ec2iface.EC2API) EC2Service {
 }
 
 func Test_Ec2TerminateInstance(t *testing.T) {
+	t.Parallel()
+
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
