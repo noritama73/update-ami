@@ -1,0 +1,15 @@
+name: 'Go Version'
+description: 'Uses the .go-version file to determine Go version'
+outputs:
+  version:
+    description: "Go version"
+    value: ${{ steps.go.outputs.version }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Determine Go version"
+      id: go
+      shell: bash
+      run: |
+        echo "Run with Go $(cat .go-version)"
+        echo "::set-output name=version::$(cat .go-version)"

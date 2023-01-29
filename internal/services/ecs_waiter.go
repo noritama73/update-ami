@@ -25,7 +25,7 @@ func (s *ecsService) WaitUntilContainerInstanceDrained(instance ClusterInstance,
 			return err
 		}
 		if len(resp.ContainerInstances) != 1 {
-			return fmt.Errorf("except ContainerInstances == 1, got %d", len(resp.ContainerInstances))
+			return fmt.Errorf("expect ContainerInstances == 1, got %d", len(resp.ContainerInstances))
 		}
 		if *resp.ContainerInstances[0].RunningTasksCount == *aws.Int64(0) {
 			return nil
