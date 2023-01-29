@@ -37,13 +37,14 @@ jobs:
     - name: test
       run: make test
     - name: Convert coverage to lcov
-      uses: jandelgado/gcov2lcov-action@v1.0.0
+      uses: jandelgado/gcov2lcov-action@v1
       with:
         infile: coverage.out
         outfile: coverage.lcov
+        version: v1.0.9
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
         github-token: ${GH_TOKEN}
-        git-branch: $GITHUB_REF
+        git-branch: ${GITHUB_REF}
         path-to-lcov: coverage.lcov
