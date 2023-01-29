@@ -1,0 +1,48 @@
+name: test
+on:
+  pull_request:
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  get-go-version:
+    name: "Determine Go toolchain version"
+    runs-on: ubuntu-latest
+    outputs:
+      go-version: ${{ steps.get-go-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Determine Go version
+        id: get-go-version
+        uses: ./.github/actions/go-version
+  test:
+    runs-on: ubuntu-latest
+    needs:
+    - get-go-version
+    steps:
+    - name: setup go ${{ needs.get-go-version.outputs.go-version }}
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ needs.get-go-version.outputs.go-version }}
+    - name: checkout
+      uses: actions/checkout@v3
+    - name: cache
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: test
+      run: make test
+    - name: Convert coverage to lcov
+      uses: jandelgado/gcov2lcov-action@v1.0.0
+      with:
+        infile: coverage.out
+        outfile: coverage.lcov
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${GH_TOKEN}
+        path-to-lcov: coverage.lcov
