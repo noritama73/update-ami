@@ -41,7 +41,6 @@ jobs:
       with:
         infile: coverage.out
         outfile: coverage.lcov
-        version: v1.0.9
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
