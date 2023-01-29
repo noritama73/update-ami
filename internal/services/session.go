@@ -9,13 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ecs"
-	"github.com/urfave/cli"
 )
 
-func NewServices(c *cli.Context) (EC2Service, ECSService, ASGService) {
+func NewServices(profile string) (EC2Service, ECSService, ASGService) {
 	opt := session.Options{
 		Config:                  *aws.NewConfig(),
-		Profile:                 c.String("profile"),
+		Profile:                 profile,
 		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 		AssumeRoleDuration:      3600 * time.Second,
 		SharedConfigState:       session.SharedConfigEnable,

@@ -29,7 +29,7 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		asgName = clusterName
 	}
 
-	ec2Service, ecsService, asgService := services.NewServices(c)
+	ec2Service, ecsService, asgService := services.NewServices(c.String("profile"))
 	log.Println("successfully initialize sessions")
 
 	waiterConfig := services.CustomAWSWaiterConfig{
@@ -125,4 +125,3 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	log.Println("Success!")
 	return nil
 }
-
