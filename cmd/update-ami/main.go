@@ -51,10 +51,10 @@ func main() {
 					Usage: "delay of waiter config",
 				},
 				cli.StringFlag{
-					Name:  "asg-name",
-					Value: "",
+					Name:   "asg-name",
+					Value:  "",
 					EnvVar: "AWS_ASG_NAME",
-					Usage: "associated asg: if not set, this will be the same value as cluster",
+					Usage:  "associated asg: if not set, this will be the same value as cluster",
 				},
 			},
 			Action: func(c *cli.Context) error {
