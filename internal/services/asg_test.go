@@ -81,7 +81,7 @@ func Test_UpdateDesiredCapacity(t *testing.T) {
 	mockAsgIface.EXPECT().UpdateAutoScalingGroup(&autoscaling.UpdateAutoScalingGroupInput{
 		AutoScalingGroupName: aws.String(testAsgName),
 		DesiredCapacity:      aws.Int64(testAsgNewCapacity),
-		MaxSize:          aws.Int64(testAsgNewCapacity),
+		MaxSize:              aws.Int64(testAsgNewCapacity),
 	}).Return(&autoscaling.UpdateAutoScalingGroupOutput{}, nil).Times(1)
 
 	mockAsgService := newMockAsgService(mockAsgIface)
