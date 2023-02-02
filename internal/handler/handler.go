@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -123,5 +124,32 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	log.Println("Reseted desired capacity")
 
 	log.Println("Success!")
+	return nil
+}
+
+func DescribeCurrentMachineImage(c *cli.Context) error {
+	ec2Service, ecsService, _ := services.NewServices(c.String("profile"))
+	log.Println("successfully initialize sessions")
+
+	cluster := c.String("cluster")
+
+	instances, err := ecsService.ListContainerInstances(cluster)
+	if err != nil {
+		return err
+	}
+	if len(instances) < 1 {
+		return fmt.Errorf("there is no instance: %s", cluster)
+	}
+
+	imageID, err := ec2Service.GetImageID(instances[0])
+	if err != nil {
+		return err
+	}
+	mi, err := ec2Service.DescribeImages(imageID)
+	if err != nil {
+		return err
+	}
+	outputMachineImage(mi, cluster)
+
 	return nil
 }
