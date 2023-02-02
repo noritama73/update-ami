@@ -61,6 +61,36 @@ func main() {
 				return handler.ReplaceClusterInstnces(c)
 			},
 		},
+		{
+			Name:  "describe-ami",
+			Usage: "Describe ami used by container instance",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:     "cluster",
+					Value:    "",
+					Usage:    "Name of target ECS cluster",
+					EnvVar:   "AWS_ECS_CLUSTER",
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     "region",
+					Value:    "",
+					Usage:    "AWS region",
+					EnvVar:   "AWS_REGION",
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     "profile",
+					Value:    "",
+					Usage:    "AWS profile",
+					EnvVar:   "AWS_PROFILE",
+					Required: true,
+				},
+			},
+			Action: func(c *cli.Context) error {
+				return handler.DescribeCurrentMachineImage(c)
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
