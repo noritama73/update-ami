@@ -13,7 +13,6 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "Update AMI"
 	app.Usage = "Replace ECS Cluster Instances for AMI Update"
-	app.Version = "2.0.0"
 
 	app.Commands = []cli.Command{
 		{
@@ -21,22 +20,25 @@ func main() {
 			Usage: "replace cluster instances",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "cluster",
-					Value:  "",
-					Usage:  "Name of target ECS cluster",
-					EnvVar: "AWS_ECS_CLUSTER",
+					Name:     "cluster",
+					Value:    "",
+					Usage:    "Name of target ECS cluster",
+					EnvVar:   "AWS_ECS_CLUSTER",
+					Required: true,
 				},
 				cli.StringFlag{
-					Name:   "region",
-					Value:  "",
-					Usage:  "AWS region",
-					EnvVar: "AWS_REGION",
+					Name:     "region",
+					Value:    "",
+					Usage:    "AWS region",
+					EnvVar:   "AWS_REGION",
+					Required: true,
 				},
 				cli.StringFlag{
-					Name:   "profile",
-					Value:  "",
-					Usage:  "AWS profile",
-					EnvVar: "AWS_PROFILE",
+					Name:     "profile",
+					Value:    "",
+					Usage:    "AWS profile",
+					EnvVar:   "AWS_PROFILE",
+					Required: true,
 				},
 				cli.IntFlag{
 					Name:  "max-attempt",
@@ -49,9 +51,10 @@ func main() {
 					Usage: "delay of waiter config",
 				},
 				cli.StringFlag{
-					Name:  "asg-name",
-					Value: "",
-					Usage: "associated asg",
+					Name:   "asg-name",
+					Value:  "",
+					EnvVar: "AWS_ASG_NAME",
+					Usage:  "associated asg: if not set, this will be the same value as cluster",
 				},
 			},
 			Action: func(c *cli.Context) error {
