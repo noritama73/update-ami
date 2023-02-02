@@ -14,7 +14,7 @@ go install github.com/noritama73/update-ami/cmd/update-ami@latest
 ## Example
 
 ```
-update-ami replace-instances --region ap-northeast-1 --profile <user>@<account> --cluster <cluster> --max-attempt 20 --delay 10
+update-ami replace-instances --region ap-northeast-1 --profile <user>@<account> --cluster <cluster> --max-attempt 20 --waiter-delay 10
 ```
 
 # Arguments
@@ -46,7 +46,7 @@ AWS CLIを使用するユーザのprofile，MFA対応．無ければAWS_PROFILE�
 # 内部的に実行される手順
 
 1. 既存のコンテナインスタンスのIDを控える
-2. ASGのdesired capacityを1増やす
+2. ASGのmax-sizeとdesired capacityを1増やす
 3. 新しいインスタンスが追加されるのを待つ
 4. 古いインスタンスを1つドレインする
 5. ドレインされたらderegister→terminate
@@ -54,4 +54,4 @@ AWS CLIを使用するユーザのprofile，MFA対応．無ければAWS_PROFILE�
 7. サービスを強制更新
 8. ちょっと待つ
 9. 4.に戻る
-10. 最後のインスタンスをterminateしたらdesired capacityを1減らす（元に戻す）
+10. 最後のインスタンスをterminateしたら，max-sizeとdesired capacityを1減らす（元に戻す）

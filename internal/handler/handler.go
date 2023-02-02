@@ -10,9 +10,9 @@ import (
 	"github.com/noritama73/update-ami/internal/services"
 )
 
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 // 1.既存のコンテナインスタンスのIDを控える
-// 2.ASGのdesired countを1増やす(maxを越えてしまうならそっちも一旦+1？)
+// 2.ASGのmax capacityとdesired countを1増やす
 // 3.新しいインスタンスが追加されるのを待つ
 // 4.古いインスタンスを1つドレインする
 // 5.ドレインされたらderegister→terminate
@@ -20,8 +20,8 @@ import (
 // 7.サービスを強制更新
 // 8.ちょっと待つ
 // 9.4.に戻る
-// 10.古いインスタンスをドレインし切るタイミングでdesired countを1減らす（元に戻す）
-////////////////////////////////////////////////////////////////////////////////////
+// 10.古いインスタンスをドレインし切るタイミングでmax capacityとdesired countを1減らす（元に戻す）
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 func ReplaceClusterInstnces(c *cli.Context) error {
 	clusterName := c.String("cluster")
@@ -46,13 +46,12 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	for _, v := range clusterInstances {
 		log.Printf("Instance is found: %v", v.InstanceID)
 	}
-	cap, err := asgService.DescribeAutoScalingGroups(asgName)
+	desiredCount, err := asgService.DescribeAutoScalingGroups(asgName)
 	if err != nil {
 		log.Println("couldn't describe autoscaling group")
 		return err
 	}
-	desiredCount := cap
-	log.Printf("Desired capacity: %d", cap)
+	log.Printf("Desired capacity: %d", desiredCount)
 
 	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount+1)); err != nil {
 		log.Println("couldn't update desired capacity")

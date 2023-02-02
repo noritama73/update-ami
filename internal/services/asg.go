@@ -38,6 +38,7 @@ func (s *asgService) UpdateDesiredCapacity(name string, newCapacity int64) error
 	input := &autoscaling.UpdateAutoScalingGroupInput{
 		AutoScalingGroupName: aws.String(name),
 		DesiredCapacity:      aws.Int64(newCapacity),
+		MaxSize:              aws.Int64(newCapacity),
 	}
 	_, err := s.svc.UpdateAutoScalingGroup(input)
 
