@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -17,10 +18,14 @@ const (
 	testAsgName        = "asg-test"
 	testAsgOldCapacity = int64(2)
 	testAsgNewCapacity = int64(3)
+
+	testAsgNameErr     = "asg-test-err"
+	testAsgErrCapacity = int64(0)
 )
 
 var (
-	testAsgs []*autoscaling.Group
+	testAsgs    []*autoscaling.Group
+	testAsgsErr []*autoscaling.Group
 )
 
 func newMockAsgService(iface autoscalingiface.AutoScalingAPI) ASGService {
@@ -45,6 +50,11 @@ func Test_DescribeAutoScalingGroups(t *testing.T) {
 	}).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
 		AutoScalingGroups: testAsgs,
 	}, nil).Times(1)
+	mockAsgIface.EXPECT().DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: []*string{aws.String(testAsgNameErr)},
+	}).Return(&autoscaling.DescribeAutoScalingGroupsOutput{
+		AutoScalingGroups: testAsgsErr,
+	}, nil).Times(1)
 
 	mockAsgService := newMockAsgService(mockAsgIface)
 
@@ -52,6 +62,12 @@ func Test_DescribeAutoScalingGroups(t *testing.T) {
 		desiredCapacity, err := mockAsgService.DescribeAutoScalingGroups(testAsgName)
 		require.NoError(t, err)
 		assert.Equal(t, testAsgOldCapacity, desiredCapacity)
+	})
+
+	t.Run("no group", func(t *testing.T) {
+		desiredCapacity, err := mockAsgService.DescribeAutoScalingGroups(testAsgNameErr)
+		assert.Equal(t, fmt.Errorf("there is no autoscaling group: %s", testAsgNameErr), err)
+		assert.Equal(t, testAsgErrCapacity, desiredCapacity)
 	})
 }
 
