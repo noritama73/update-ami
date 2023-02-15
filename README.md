@@ -8,7 +8,7 @@
 ## Install
 
 ```
-go install github.com/noritama73/update-ami/cmd/update-ami@latest
+go install github.com/noritama73/update-ami/cmd/update-ami@v0.2.1
 ```
 
 ## Example
