@@ -35,7 +35,7 @@ AWS CLIを使用するユーザのprofile，MFA対応．無ければAWS_PROFILE�
 
 インスタンスのステータスチェックを行う最大試行回数．デフォルト40回
 
-## delay (optional)
+## waiter-delay (optional)
 
 インスタンスのステータスチェックを行う間隔．デフォルト20秒
 
