@@ -46,15 +46,16 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 	for _, v := range clusterInstances {
 		log.Printf("Instance is found: %v", v.InstanceID)
 	}
-	desiredCount, err := asgService.DescribeAutoScalingGroups(asgName)
+	asg, err := asgService.DescribeAutoScalingGroup(asgName)
 	if err != nil {
 		log.Println("couldn't describe autoscaling group")
 		return err
 	}
-	log.Printf("Desired capacity: %d", desiredCount)
+	log.Printf("Desired capacity: %d", *asg.DesiredCapacity)
+	log.Printf("Max size: %d", *asg.MaxSize)
 
-	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount+1)); err != nil {
-		log.Println("couldn't update desired capacity")
+	if err := asgService.UpdateAutoScalingGroup(asgName, int64(*asg.DesiredCapacity+1), int64(*asg.MaxSize+1)); err != nil {
+		log.Println("couldn't update autoscaling group")
 		return err
 	}
 	log.Println("waiting for a new instance to be registered")
@@ -66,12 +67,13 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		log.Println(err)
 	}
 	time.Sleep(5 * time.Second)
-	newcap, err := asgService.DescribeAutoScalingGroups(asgName)
+	updatedASG, err := asgService.DescribeAutoScalingGroup(asgName)
 	if err != nil {
 		log.Println("couldn't describe autoscaling group")
 		return err
 	}
-	log.Printf("increased desired capacity: %d", newcap)
+	log.Printf("Desired capacity: %d", *updatedASG.DesiredCapacity)
+	log.Printf("Max size: %d", *updatedASG.MaxSize)
 
 	for i, instance := range clusterInstances {
 		log.Println("**************************************************")
@@ -116,11 +118,11 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		time.Sleep(10 * time.Second)
 	}
 
-	if err := asgService.UpdateDesiredCapacity(asgName, int64(desiredCount)); err != nil {
-		log.Println("couldn't update desired capacity")
+	if err := asgService.UpdateAutoScalingGroup(asgName, int64(*asg.DesiredCapacity), *asg.MaxSize); err != nil {
+		log.Println("couldn't update autoscaling group")
 		return err
 	}
-	log.Println("Reseted desired capacity")
+	log.Println("Reset autoscaling group")
 
 	log.Println("Success!")
 	return nil
