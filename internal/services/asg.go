@@ -9,8 +9,8 @@ import (
 )
 
 type ASGService interface {
-	DescribeAutoScalingGroups(name string) (int64, error)
-	UpdateDesiredCapacity(name string, newCapacity int64) error
+	DescribeAutoScalingGroup(name string) (*autoscaling.Group, error)
+	UpdateAutoScalingGroup(name string, desiredCapacity, maxSize int64) error
 }
 
 type asgService struct {
@@ -21,24 +21,29 @@ type DescribeAutoScalingGroupsOutput struct {
 	DesiredCapacity int64
 }
 
-func (s *asgService) DescribeAutoScalingGroups(name string) (int64, error) {
+func (s *asgService) DescribeAutoScalingGroup(name string) (*autoscaling.Group, error) {
 	input := &autoscaling.DescribeAutoScalingGroupsInput{
 		AutoScalingGroupNames: []*string{aws.String(name)},
 	}
 	resp, err := s.svc.DescribeAutoScalingGroups(input)
-
+	if err != nil {
+		return nil, err
+	}
 	if len(resp.AutoScalingGroups) < 1 {
-		return 0, fmt.Errorf("there is no autoscaling group: %s", name)
+		return nil, fmt.Errorf("there is no autoscaling group: %s", name)
+	}
+	if len(resp.AutoScalingGroups) > 1 {
+		return nil, fmt.Errorf("there is more than 1 autoscaling group: %s", name)
 	}
 
-	return *resp.AutoScalingGroups[0].DesiredCapacity, err
+	return resp.AutoScalingGroups[0], err
 }
 
-func (s *asgService) UpdateDesiredCapacity(name string, newCapacity int64) error {
+func (s *asgService) UpdateAutoScalingGroup(name string, desiredCapacity, maxSize int64) error {
 	input := &autoscaling.UpdateAutoScalingGroupInput{
 		AutoScalingGroupName: aws.String(name),
-		DesiredCapacity:      aws.Int64(newCapacity),
-		MaxSize:              aws.Int64(newCapacity),
+		DesiredCapacity:      aws.Int64(desiredCapacity),
+		MaxSize:              aws.Int64(maxSize),
 	}
 	_, err := s.svc.UpdateAutoScalingGroup(input)
 
