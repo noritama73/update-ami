@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/noritama73/update-ami/internal/mocks"
 )
@@ -17,7 +17,9 @@ import (
 const (
 	testAsgName        = "asg-test"
 	testAsgOldCapacity = int64(2)
+	testAsgOldMaxSize  = int64(4)
 	testAsgNewCapacity = int64(3)
+	testAsgNewMaxSize  = int64(5)
 
 	testAsgNameErr     = "asg-test-err"
 	testAsgErrCapacity = int64(0)
@@ -41,6 +43,7 @@ func Test_DescribeAutoScalingGroups(t *testing.T) {
 	testAsg := &autoscaling.Group{
 		AutoScalingGroupName: aws.String(testAsgName),
 		DesiredCapacity:      aws.Int64(testAsgOldCapacity),
+		MaxSize:              aws.Int64(testAsgOldMaxSize),
 	}
 	testAsgs = append(testAsgs, testAsg)
 
@@ -59,15 +62,15 @@ func Test_DescribeAutoScalingGroups(t *testing.T) {
 	mockAsgService := newMockAsgService(mockAsgIface)
 
 	t.Run("Describe", func(t *testing.T) {
-		desiredCapacity, err := mockAsgService.DescribeAutoScalingGroups(testAsgName)
+		asg, err := mockAsgService.DescribeAutoScalingGroup(testAsgName)
 		require.NoError(t, err)
-		assert.Equal(t, testAsgOldCapacity, desiredCapacity)
+		assert.Equal(t, testAsgOldCapacity, *asg.DesiredCapacity)
+		assert.Equal(t, testAsgOldMaxSize, *asg.MaxSize)
 	})
 
 	t.Run("no group", func(t *testing.T) {
-		desiredCapacity, err := mockAsgService.DescribeAutoScalingGroups(testAsgNameErr)
+		_, err := mockAsgService.DescribeAutoScalingGroup(testAsgNameErr)
 		assert.Equal(t, fmt.Errorf("there is no autoscaling group: %s", testAsgNameErr), err)
-		assert.Equal(t, testAsgErrCapacity, desiredCapacity)
 	})
 }
 
@@ -81,12 +84,12 @@ func Test_UpdateDesiredCapacity(t *testing.T) {
 	mockAsgIface.EXPECT().UpdateAutoScalingGroup(&autoscaling.UpdateAutoScalingGroupInput{
 		AutoScalingGroupName: aws.String(testAsgName),
 		DesiredCapacity:      aws.Int64(testAsgNewCapacity),
-		MaxSize:              aws.Int64(testAsgNewCapacity),
+		MaxSize:              aws.Int64(testAsgNewMaxSize),
 	}).Return(&autoscaling.UpdateAutoScalingGroupOutput{}, nil).Times(1)
 
 	mockAsgService := newMockAsgService(mockAsgIface)
 
 	t.Run("Update Capacity", func(t *testing.T) {
-		assert.NoError(t, mockAsgService.UpdateDesiredCapacity(testAsgName, testAsgNewCapacity))
+		assert.NoError(t, mockAsgService.UpdateAutoScalingGroup(testAsgName, testAsgNewCapacity, testAsgNewMaxSize))
 	})
 }
