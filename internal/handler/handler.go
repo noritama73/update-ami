@@ -51,9 +51,11 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		log.Println("couldn't describe autoscaling group")
 		return err
 	}
+	checkDifferenceBetweenAsgAndInstances(asg)
 	log.Printf("Desired capacity: %d", *asg.DesiredCapacity)
 	log.Printf("Max size: %d", *asg.MaxSize)
 
+	// 更新開始、ここからは中途半端な状態で終わらないように注意
 	if err := asgService.UpdateAutoScalingGroup(asgName, int64(*asg.DesiredCapacity+1), int64(*asg.MaxSize+1)); err != nil {
 		log.Println("couldn't update autoscaling group")
 		return err
