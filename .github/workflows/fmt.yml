@@ -1,47 +1,37 @@
 name: Auto fmt
 on: [push]
 jobs:
-  get-go-version:
-    name: "Determine Go toolchain version"
-    runs-on: ubuntu-latest
-    outputs:
-      go-version: ${{ steps.get-go-version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Determine Go version
-        id: get-go-version
-        uses: ./.github/actions/go-version
   fmt:
     runs-on: ubuntu-latest
-    needs:
-    - get-go-version
     steps:
-      - name: setup go ${{ needs.get-go-version.outputs.go-version }}
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ needs.get-go-version.outputs.go-version }}
-      - name: checkout
-        uses: actions/checkout@v3
-      - name: cache
-        uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - name: Run fmt
-        run: make fmt
-      - name: Run git diff
-        id: diff
-        run: git diff --name-only --exit-code
-        continue-on-error: true
-      - name: Commit and push if fmt changes code
-        run: |
-          set -ex
-          git config user.name github-actions[bot]
-          # Use this email to show icon in commit view.
-          git config user.email github-actions[bot]@users.noreply.github.com
-          git add .
-          git commit -m 'Auto fmt'
-          git push
-        if: steps.diff.outcome == 'failure'
+    - name: checkout
+      uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+    - name: Set up Go
+      uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v5.0.1
+      with:
+        go-version-file: 'go.mod'
+        cache: false
+      id: go
+    - name: cache
+      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    - name: Run fmt
+      run: make fmt
+    - name: Run git diff
+      id: diff
+      run: git diff --name-only --exit-code
+      continue-on-error: true
+    - name: Commit and push if fmt changes code
+      run: |
+        set -ex
+        git config user.name github-actions[bot]
+        # Use this email to show icon in commit view.
+        git config user.email github-actions[bot]@users.noreply.github.com
+        git add .
+        git commit -m 'Auto fmt'
+        git push
+      if: steps.diff.outcome == 'failure'
