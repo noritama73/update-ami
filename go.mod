@@ -3,6 +3,7 @@ module github.com/noritama73/update-ami
 go 1.23
 
 require (
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli v1.22.15
 	go.uber.org/mock v0.4.0
