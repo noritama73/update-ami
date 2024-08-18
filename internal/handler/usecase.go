@@ -24,7 +24,7 @@ func checkDifferenceBetweenAsgAndInstances(asg *autoscaling.Group) {
 	for _, override := range asg.MixedInstancesPolicy.LaunchTemplate.Overrides {
 		for _, i := range asg.Instances {
 			if *i.InstanceType != *override.InstanceType {
-				log.Printf("InstanceType is different; Instance: %s, asg: %s", *i.InstanceType, *override.InstanceType)
+				log.Printf("\x1b[33mInstanceType is different; Instance: %s, asg: %s\x1b[0m", *i.InstanceType, *override.InstanceType)
 				if !checkWantToContinue() {
 					os.Exit(0)
 				}
