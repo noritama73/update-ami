@@ -38,8 +38,8 @@ func (s *ec2Service) WaitUntilInstanceTerminated(instanceID string, config Custo
 	return s.svc.WaitUntilInstanceTerminatedWithContext(
 		context.TODO(),
 		input,
-		request.WithWaiterDelay(request.ConstantWaiterDelay(5*time.Minute)), // 1分かかるケースがあったので、固定で5分は待っておく
-		request.WithWaiterMaxAttempts(config.MaxAttempts),
+		request.WithWaiterDelay(request.ConstantWaiterDelay(time.Duration(config.Delay)*time.Second)),
+		request.WithWaiterMaxAttempts(60*5/config.Delay), // 1分かかるケースがあったので、固定で5分は待っておく
 	)
 }
 
