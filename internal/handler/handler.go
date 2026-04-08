@@ -101,9 +101,12 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 
 		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
-		} else {
-			log.Printf("Terminated: %v", instance.InstanceID)
 		}
+
+		if err := ec2Service.WaitUntilInstanceTerminated(instance.InstanceID, waiterConfig); err != nil {
+			log.Printf("instance %s is failed to be terminated", instance.InstanceID)
+		}
+		log.Printf("Terminated: %v", instance.InstanceID)
 
 		if (i + 1) == len(clusterInstances) {
 			break

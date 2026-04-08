@@ -1,15 +1,19 @@
 package services
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 )
 
 type EC2Service interface {
 	TerinateInstance(instance ClusterInstance) error
+	WaitUntilInstanceTerminated(instanceID string, config CustomAWSWaiterConfig) error
 
 	GetImageID(instance ClusterInstance) (string, error)
 	DescribeImages(id string) (MachineImage, error)
@@ -25,6 +29,18 @@ func (s *ec2Service) TerinateInstance(instance ClusterInstance) error {
 	}
 	_, err := s.svc.TerminateInstances(input)
 	return err
+}
+
+func (s *ec2Service) WaitUntilInstanceTerminated(instanceID string, config CustomAWSWaiterConfig) error {
+	input := &ec2.DescribeInstancesInput{
+		InstanceIds: []*string{aws.String(instanceID)},
+	}
+	return s.svc.WaitUntilInstanceTerminatedWithContext(
+		context.TODO(),
+		input,
+		request.WithWaiterDelay(request.ConstantWaiterDelay(time.Duration(config.Delay))),
+		request.WithWaiterMaxAttempts(config.MaxAttempts),
+	)
 }
 
 func (s *ec2Service) GetImageID(instance ClusterInstance) (string, error) {
