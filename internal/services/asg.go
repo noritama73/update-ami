@@ -11,6 +11,7 @@ import (
 type ASGService interface {
 	DescribeAutoScalingGroup(name string) (*autoscaling.Group, error)
 	UpdateAutoScalingGroup(name string, desiredCapacity, maxSize int64) error
+	TerminateInstanceInAutoScalingGroup(instanceID string, shouldDecrementDesiredCapacity bool) error
 }
 
 type asgService struct {
@@ -47,6 +48,15 @@ func (s *asgService) UpdateAutoScalingGroup(name string, desiredCapacity, maxSiz
 	}
 	_, err := s.svc.UpdateAutoScalingGroup(input)
 
+	return err
+}
+
+func (s *asgService) TerminateInstanceInAutoScalingGroup(instanceID string, shouldDecrementDesiredCapacity bool) error {
+	input := &autoscaling.TerminateInstanceInAutoScalingGroupInput{
+		InstanceId:                     aws.String(instanceID),
+		ShouldDecrementDesiredCapacity: aws.Bool(shouldDecrementDesiredCapacity),
+	}
+	_, err := s.svc.TerminateInstanceInAutoScalingGroup(input)
 	return err
 }
 

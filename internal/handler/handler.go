@@ -20,7 +20,8 @@ import (
 // 7.サービスを強制更新
 // 8.ちょっと待つ
 // 9.4.に戻る
-// 10.古いインスタンスをドレインし切るタイミングでmax capacityとdesired countを1減らす（元に戻す）
+// 10.最後のインスタンスはASGのTerminateInstanceInAutoScalingGroup(ShouldDecrementDesiredCapacity=true)で
+//    terminateとdesired countの縮小をアトミックに行い、その後max capacityを元に戻す
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 func ReplaceClusterInstnces(c *cli.Context) error {
@@ -99,14 +100,29 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 			log.Printf("Deregistered: %v", instance.InstanceID)
 		}
 
+		isLastInstance := (i + 1) == len(clusterInstances)
+
+		if isLastInstance {
+			// 最後のインスタンスはASG経由でterminateし、desired countをアトミックに縮小する
+			if err := asgService.TerminateInstanceInAutoScalingGroup(instance.InstanceID, true); err != nil {
+				log.Println(err)
+				return err
+			}
+			log.Printf("Terminated via ASG (with desired decrement): %v", instance.InstanceID)
+
+			// max capacityだけ元に戻す
+			if err := asgService.UpdateAutoScalingGroup(asgName, int64(*asg.DesiredCapacity), *asg.MaxSize); err != nil {
+				log.Println("couldn't update autoscaling group")
+				return err
+			}
+			log.Println("Reset autoscaling group")
+			break
+		}
+
 		if err := ec2Service.TerinateInstance(instance); err != nil {
 			log.Println(err)
 		} else {
 			log.Printf("Terminated: %v", instance.InstanceID)
-		}
-
-		if (i + 1) == len(clusterInstances) {
-			break
 		}
 
 		log.Println("waiting for a new instance to be registered")
@@ -119,12 +135,6 @@ func ReplaceClusterInstnces(c *cli.Context) error {
 		}
 		time.Sleep(10 * time.Second)
 	}
-
-	if err := asgService.UpdateAutoScalingGroup(asgName, int64(*asg.DesiredCapacity), *asg.MaxSize); err != nil {
-		log.Println("couldn't update autoscaling group")
-		return err
-	}
-	log.Println("Reset autoscaling group")
 
 	log.Println("Success!")
 	return nil
